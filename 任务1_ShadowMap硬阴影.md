@@ -106,7 +106,7 @@ mat4.scale(modelMatrix, modelMatrix, scale);
 mat4.lookAt(viewMatrix, this.lightPos, this.focalPoint, this.lightUp);
 
 // Projection transform
-mat4.ortho(projectionMatrix, -100, 100, -100, 100, 1, 200);
+mat4.ortho(projectionMatrix, -100, 100, -100, 100, 1, 500);
 
 mat4.multiply(lightMVP, projectionMatrix, viewMatrix);
 mat4.multiply(lightMVP, lightMVP, modelMatrix);
@@ -118,7 +118,7 @@ mat4.multiply(lightMVP, lightMVP, modelMatrix);
 |------|---------|------|
 | `translate + scale` | 1.2 Model矩阵 | 将模型从局部空间平移到世界空间位置 |
 | `lookAt(lightPos, focalPoint, lightUp)` | 1.2 View矩阵 | 从光源位置"看"场景中心，定义光源观察坐标系 |
-| `ortho(-100,100, -100,100, 1,200)` | 1.2 Projection矩阵 | 平行光用正交投影，200×200×199 立方体裁剪区域 |
+| `ortho(-100,100, -100,100, 1,200)` | 1.2 Projection矩阵 | 平行光用正交投影，200×200×499 立方体裁剪区域 |
 | `P × V × M` | 1.2 连乘顺序 | 右乘规则：顶点先乘M→再乘V→再乘P，代码中 `P×(V×M)` = `P×V×M` |
 
 **正交投影范围说明**：场景中 Mary 模型缩放 20×20×20，光源在 `(0, 80, 80)`，地板在 `z=-30`。`left/right/bottom/top = ±100` 确保所有物体都在光源视野内，`near=1, far=200` 覆盖光源到最远物体的距离。
@@ -197,4 +197,5 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 | 阴影位置偏移 | modelMatrix 与正常 Pass 不一致 | 确认 `loadOBJ.js` 中传入的 translate/scale 相同 |
 | shadow acne（条纹） | bias 太小 | 增大 bias 到 0.01，或改用基于法线的动态 bias |
 | 阴影缺失/破碎 | FBO 未清理 | 确认 Shadow Pass 前有 `gl.clear()` |
+| 地面远处出现硬边界线 | 正交 far 平面不够远，地面超出裁剪范围 | 增大 `ortho` 的 far 参数（200→500） |
 | 深度比较方向反了 | 0/1 颠倒 | 检查是 `> closestDepth` 还是 `< closestDepth` |

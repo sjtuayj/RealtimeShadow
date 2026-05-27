@@ -117,7 +117,7 @@ return visibility / float(PCF_NUM_SAMPLES);
 |------|-----|------|
 | `PCF_NUM_SAMPLES` | 20 | 每片元采样次数 |
 | `filterSize` | 0.005 | UV 空间采样半径（≈41 texels @8192） |
-| `bias` | 0.005 | 深度偏移防止 shadow acne |
+| `bias` | 0.01 | 深度偏移防止 shadow acne（PCF 大采样范围需更大 bias） |
 
 ### 修改2：[phongFragment.glsl](src/shaders/phongShader/phongFragment.glsl) — `main()` 切换调用
 
@@ -187,3 +187,4 @@ for (int i = 0; i < PCF_NUM_SAMPLES; i++) {
 | shadow acne 加重 | 多采样降低了有效精度 | 增大 `bias` 到 0.01 |
 | 性能下降明显 | 采样数 × 片元数过大 | 降低 `PCF_NUM_SAMPLES` 或 shadow map 分辨率 |
 | 地面上多出一层异常阴影 | 纹理 `REPEAT` 环绕 + 采样越界 | FBO 加 `CLAMP_TO_EDGE` + PCF 逐点边界检查 |
+| 地面远处出现硬边界线 | 正交 far 平面不够远 | 增大 `ortho` 的 far 参数（200→500） |
