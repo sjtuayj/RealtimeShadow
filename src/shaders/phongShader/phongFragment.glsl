@@ -101,7 +101,7 @@ float PCF(sampler2D shadowMap, vec4 coords) {
 
   float visibility = 0.0;
   float currentDepth = projCoords.z;
-  float bias = 0.005;
+  float bias = 0.01;
   float filterSize = 0.005;
 
   for (int i = 0; i < PCF_NUM_SAMPLES; i++) {
