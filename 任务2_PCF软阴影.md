@@ -114,7 +114,7 @@ return visibility / float(PCF_NUM_SAMPLES);
 | 参数 | 值 | 说明 |
 |------|-----|------|
 | `PCF_NUM_SAMPLES` | 20 | 每片元采样次数 |
-| `filterSize` | 0.002 | UV 空间采样半径（≈16 texels @8192） |
+| `filterSize` | 0.005 | UV 空间采样半径（≈41 texels @8192） |
 | `bias` | 0.005 | 深度偏移防止 shadow acne |
 
 ### 修改2：`main()` 切换调用
