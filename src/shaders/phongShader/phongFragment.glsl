@@ -106,8 +106,13 @@ float PCF(sampler2D shadowMap, vec4 coords) {
 
   for (int i = 0; i < PCF_NUM_SAMPLES; i++) {
     vec2 offset = poissonDisk[i] * filterSize;
-    float closestDepth = unpack(texture2D(shadowMap, projCoords.xy + offset));
-    visibility += currentDepth - bias > closestDepth ? 0.0 : 1.0;
+    vec2 sampleUV = projCoords.xy + offset;
+    if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
+      visibility += 1.0;
+    } else {
+      float closestDepth = unpack(texture2D(shadowMap, sampleUV));
+      visibility += currentDepth - bias > closestDepth ? 0.0 : 1.0;
+    }
   }
 
   // 取平均 → 0.0~1.0 之间的连续值，产生柔化过渡
