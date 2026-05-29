@@ -32,7 +32,7 @@ lightMVP = Projection × View × Model
 |------|------|---------|
 | **Model** | 模型空间 → 世界空间 | `translate(translate) × scale(scale)` |
 | **View** | 世界空间 → 光源观察空间 | `lookAt(lightPos, focalPoint, lightUp)` |
-| **Projection** | 光源空间 → 裁剪空间 | `ortho(-100,100, -100,100, 1,200)` |
+| **Projection** | 光源空间 → 裁剪空间 | `ortho(-120,120, -70,110, 40,240)` |
 
 为什么平行光用**正交投影**（`ortho`）而不是透视？因为平行光的光线是平行的，没有"近大远小"的透视效果。正交投影用一个立方体裁剪区域，投影矩阵将立方体映射到 NDC（归一化设备坐标）。
 
@@ -63,7 +63,7 @@ lightMVP = Projection × View × Model
 
 **Shadow Acne（阴影痤疮）**：由于 Shadow Map 分辨率有限，一个texel覆盖了场景中的多个片元。当片元深度恰好接近SM记录的深度时，浮点精度误差导致"自己遮挡自己"——表面上出现条纹状伪影。
 
-**Bias 解决方案**：在深度比较时加一个偏移量，`currentDepth - bias > closestDepth`。相当于把当前片元往光源方向"推"一点点，避免自遮挡。当前 `bias = 0.005`。
+**Bias 解决方案**：在深度比较时加一个偏移量，`currentDepth - bias > closestDepth`。相当于把当前片元往光源方向"推"一点点，避免自遮挡。当前统一使用 `SHADOW_BIAS = 0.004`。
 
 ### 1.5 数据流总览
 
@@ -81,7 +81,7 @@ engine.js 加载模型
   │
   └→ 遍历 meshes
          └→ phongVertex.glsl: vPositionFromLight = uLightMVP × pos
-         └→ phongFragment.glsl: useShadowMap() → visibility → × phongColor
+         └→ phongFragment.glsl: useShadowMap() → visibility → 衰减直接光照
 ```
 
 ---
@@ -106,7 +106,7 @@ mat4.scale(modelMatrix, modelMatrix, scale);
 mat4.lookAt(viewMatrix, this.lightPos, this.focalPoint, this.lightUp);
 
 // Projection transform
-mat4.ortho(projectionMatrix, -100, 100, -100, 100, 1, 500);
+mat4.ortho(projectionMatrix, -120, 120, -70, 110, 40, 240);
 
 mat4.multiply(lightMVP, projectionMatrix, viewMatrix);
 mat4.multiply(lightMVP, lightMVP, modelMatrix);
@@ -118,10 +118,10 @@ mat4.multiply(lightMVP, lightMVP, modelMatrix);
 |------|---------|------|
 | `translate + scale` | 1.2 Model矩阵 | 将模型从局部空间平移到世界空间位置 |
 | `lookAt(lightPos, focalPoint, lightUp)` | 1.2 View矩阵 | 从光源位置"看"场景中心，定义光源观察坐标系 |
-| `ortho(-100,100, -100,100, 1,200)` | 1.2 Projection矩阵 | 平行光用正交投影，200×200×499 立方体裁剪区域 |
+| `ortho(-120,120, -70,110, 40,240)` | 1.2 Projection矩阵 | 平行光用正交投影，覆盖当前 Mary 与地板场景并收紧深度范围 |
 | `P × V × M` | 1.2 连乘顺序 | 右乘规则：顶点先乘M→再乘V→再乘P，代码中 `P×(V×M)` = `P×V×M` |
 
-**正交投影范围说明**：场景中 Mary 模型缩放 20×20×20，光源在 `(0, 80, 80)`，地板在 `z=-30`。`left/right/bottom/top = ±100` 确保所有物体都在光源视野内，`near=1, far=200` 覆盖光源到最远物体的距离。
+**正交投影范围说明**：场景中 Mary 模型缩放 20×20×20，第二个 Mary 位于 `(40, 0, -40)`，光源在 `(0, 80, 80)`，地板在 `z=-30`。当前使用 `left/right = ±120`、`bottom/top = -70/110`、`near/far = 40/240`，用于覆盖当前场景并提高 Shadow Map 的有效深度精度。
 
 ### 修改2：[phongFragment.glsl](data/src/shaders/phongShader/phongFragment.glsl) — `useShadowMap()`
 
@@ -143,7 +143,7 @@ float useShadowMap(sampler2D shadowMap, vec4 shadowCoord){
   // ② 采样 Shadow Map + 深度比较
   float closestDepth = unpack(texture2D(shadowMap, projCoords.xy));
   float currentDepth = projCoords.z;
-  float bias = 0.005;
+  float bias = SHADOW_BIAS;
 
   // ③ 判断遮挡
   return currentDepth - bias > closestDepth ? 0.0 : 1.0;
@@ -156,7 +156,7 @@ float useShadowMap(sampler2D shadowMap, vec4 shadowCoord){
 |------|---------|------|
 | 边界检查 `[0,1]` | 1.3 | 超出 Shadow Map 范围的片元默认可见，不做比较 |
 | `unpack(texture2D(...))` | 1.3 深度解包 | 从 RGBA 四通道还原32位深度值 |
-| `currentDepth - bias > closestDepth` | 1.4 Shadow Acne | bias 偏移避免自遮挡条纹 |
+| `currentDepth - bias > closestDepth` | 1.4 Shadow Acne | 使用 `SHADOW_BIAS = 0.004` 偏移避免自遮挡条纹 |
 | 返回 `0.0` / `1.0` | 1.3 深度比较 | 0.0=被遮挡(阴影)，1.0=可见(光亮) |
 
 ### 修改3：[WebGLRenderer.js](data/src/renderers/WebGLRenderer.js) — FBO 清理
@@ -195,7 +195,7 @@ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 | 全黑 | lightMVP 矩阵顺序错误或正交范围不覆盖场景 | 检查 `P×V×M` 连乘顺序，增大 ortho 范围 |
 | 完全无阴影 | `useShadowMap()` 始终返回 1.0 | 检查 shadowCoord 是否在 [0,1] 内，正交范围是否过大 |
 | 阴影位置偏移 | modelMatrix 与正常 Pass 不一致 | 确认 `loadOBJ.js` 中传入的 translate/scale 相同 |
-| shadow acne（条纹） | bias 太小 | 增大 bias 到 0.01，或改用基于法线的动态 bias |
+| shadow acne（条纹） | bias 太小 | 适当增大 `SHADOW_BIAS`，或改用基于法线的动态 bias |
 | 阴影缺失/破碎 | FBO 未清理 | 确认 Shadow Pass 前有 `gl.clear()` |
-| 地面远处出现硬边界线 | 正交 far 平面不够远，地面超出裁剪范围 | 增大 `ortho` 的 far 参数（200→500） |
+| 地面远处出现硬边界线 | 正交投影范围不覆盖场景，地面超出裁剪范围 | 调整 `ortho` 的 left/right/bottom/top/near/far 范围 |
 | 深度比较方向反了 | 0/1 颠倒 | 检查是 `> closestDepth` 还是 `< closestDepth` |

@@ -35,7 +35,7 @@ visibility = (1/N) * Σᵢ shadowTest(uv + offsetᵢ × filterSize)
 - **规则网格**：产生明显的条带状伪影（banding artifacts）
 - **Poisson 圆盘**：任意两个样本之间保持最小距离，分布均匀但不规则 → **柔化效果最自然**
 
-代码中已有的 `poissonDiskSamples()` 生成 N=20 个分布在单位圆盘内的 Poisson 样本点，每个点与 `filterSize` 相乘后作为 UV 偏移量。
+代码中已有的 `poissonDiskSamples()` 生成 N=40 个分布在单位圆盘内的 Poisson 样本点，每个点与 `filterSize` 相乘后作为 UV 偏移量。
 
 ### 1.4 filterSize 参数
 
@@ -44,9 +44,9 @@ visibility = (1/N) * Σᵢ shadowTest(uv + offsetᵢ × filterSize)
 - `filterSize` 小 → 采样集中在片元附近 → 过渡窄 → 阴影边缘较硬
 - `filterSize` 大 → 采样分布更广 → 过渡宽 → 阴影边缘更软
 
-当前 shadow map 分辨率 8192×8192，正交投影范围 200×200：
+当前 shadow map 分辨率 8192×8192，光源正交投影范围约 240×180：
 - 1 个 texel = `1/8192 ≈ 0.00012` UV 单位
-- `filterSize = 0.005` ≈ 41 个 texel 半径，产生肉眼可见的柔化
+- `filterSize = 0.0035` ≈ 29 个 texel 半径，产生较稳定的柔化
 
 ### 1.5 数据流
 
@@ -56,7 +56,7 @@ visibility = (1/N) * Σᵢ shadowTest(uv + offsetᵢ × filterSize)
   ├→ 边界检查（超出 [0,1] → 可见）
   │
   ├→ poissonDiskSamples(shadowCoord.xy)  // 用片元坐标作为随机种子
-  │      └→ 填满 poissonDisk[0..19]
+  │      └→ 填满 poissonDisk[0..39]
   │
   ├→ for i in 0..PCF_NUM_SAMPLES:
   │      offset = poissonDisk[i] × filterSize
@@ -73,11 +73,11 @@ visibility = (1/N) * Σᵢ shadowTest(uv + offsetᵢ × filterSize)
 
 ## 二、代码修改
 
-共修改 **3 个文件**。
+共修改 **2 个文件**。
 
-### 修改1：[phongFragment.glsl](src/shaders/phongShader/phongFragment.glsl) — 实现 `PCF()` 函数体
+### 修改1：[phongFragment.glsl](src/shaders/phongShader/phongFragment.glsl) — 实现 PCF 多采样逻辑
 
-**位置**：第 90-92 行，原 `return 1.0` 替换为完整多采样逻辑
+**位置**：`PCFWithFilterSize()` 与 `PCF()`
 
 **改动与原理对应**：
 
@@ -91,7 +91,7 @@ if (projCoords 超出 [0,1]) return 1.0;
 // ② 生成 Poisson 圆盘采样点
 poissonDiskSamples(projCoords.xy);
 ```
-→ 对应原理 1.3：用片元 UV 作为随机种子，生成 20 个均匀分布但不规则的采样偏移。
+→ 对应原理 1.3：用片元 UV 作为随机种子，生成 40 个均匀分布但不规则的采样偏移。
 
 ```glsl
 // ③ 遍历 N 个采样点，逐个做 shadow test
@@ -115,9 +115,17 @@ return visibility / float(PCF_NUM_SAMPLES);
 **当前参数**：
 | 参数 | 值 | 说明 |
 |------|-----|------|
-| `PCF_NUM_SAMPLES` | 20 | 每片元采样次数 |
-| `filterSize` | 0.005 | UV 空间采样半径（≈41 texels @8192） |
-| `bias` | 0.01 | 深度偏移防止 shadow acne（PCF 大采样范围需更大 bias） |
+| `PCF_NUM_SAMPLES` | 40 | 每片元采样次数 |
+| `PCF_FILTER_SIZE` | 0.0035 | UV 空间采样半径（≈29 texels @8192） |
+| `SHADOW_BIAS` | 0.004 | 深度偏移防止 shadow acne |
+
+当前代码将 PCF 核心逻辑抽为 `PCFWithFilterSize()`，任务2固定半径 PCF 通过 `PCF()` 调用它：
+
+```glsl
+float PCF(sampler2D shadowMap, vec4 coords) {
+  return PCFWithFilterSize(shadowMap, coords, PCF_FILTER_SIZE);
+}
+```
 
 ### 修改2：[phongFragment.glsl](src/shaders/phongShader/phongFragment.glsl) — `main()` 切换调用
 
@@ -183,8 +191,8 @@ for (int i = 0; i < PCF_NUM_SAMPLES; i++) {
 |------|---------|------|
 | 阴影边缘太硬、看不出柔化 | `filterSize` 太小 | 增大到 0.003~0.005 |
 | 阴影边缘过于模糊 | `filterSize` 太大 | 减小到 0.0005~0.001 |
-| 阴影区域有噪点 | `PCF_NUM_SAMPLES` 不够 | 增大到 30~40 |
-| shadow acne 加重 | 多采样降低了有效精度 | 增大 `bias` 到 0.01 |
+| 阴影区域有噪点 | `PCF_NUM_SAMPLES` 不够 | 适当增大采样数，但会增加性能开销 |
+| shadow acne 加重 | bias 太小或深度精度不足 | 适当增大 `SHADOW_BIAS` |
 | 性能下降明显 | 采样数 × 片元数过大 | 降低 `PCF_NUM_SAMPLES` 或 shadow map 分辨率 |
 | 地面上多出一层异常阴影 | 纹理 `REPEAT` 环绕 + 采样越界 | FBO 加 `CLAMP_TO_EDGE` + PCF 逐点边界检查 |
-| 地面远处出现硬边界线 | 正交 far 平面不够远 | 增大 `ortho` 的 far 参数（200→500） |
+| 地面远处出现硬边界线 | 正交投影范围不覆盖场景 | 调整 `ortho` 的 left/right/bottom/top/near/far 范围 |

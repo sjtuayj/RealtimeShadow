@@ -33,6 +33,7 @@
 ├── 实时阴影任务大纲.md      # 原始实现计划
 ├── 任务1_ShadowMap硬阴影.md # 任务1 原理 + 实现归档
 ├── 任务2_PCF软阴影.md       # 任务2 原理 + 实现归档
+├── 任务3_PCSS软阴影.md      # 任务3 原理 + 实现归档
 └── 说明.pdf                # 作业说明文档
 ```
 
@@ -45,17 +46,12 @@
 | 基础场景跑通 | ✅ | `engine.js` | — |
 | **任务1：Shadow Map 硬阴影** | ✅ | `DirectionalLight.js`, `phongFragment.glsl`, `WebGLRenderer.js`, `FBO.js` | [任务1_ShadowMap硬阴影.md](任务1_ShadowMap硬阴影.md) |
 | **任务2：PCF 软阴影** | ✅ | `phongFragment.glsl`, `FBO.js` | [任务2_PCF软阴影.md](任务2_PCF软阴影.md) |
-| **任务3：PCSS** | ❌ | `phongFragment.glsl` (`findBlocker`, `PCSS`) | — |
-| 截图和提交整理 | ❌ | `images/` | — |
+| **任务3：PCSS** | ✅ | `phongFragment.glsl` (`findBlocker`, `PCSS`, `PCFWithFilterSize`) | [任务3_PCSS软阴影.md](任务3_PCSS软阴影.md) |
+| 截图和提交整理 | ✅ | `images/` | [images](./images) |
 
 ### 待实现
 
-1. **PCSS**（Percentage Closer Soft Shadow）
-   - `findBlocker()`：搜索 blocker 平均深度
-   - `PCSS()`：估算 penumbra → 动态 filterSize → 调用 PCF
-   - 实现接触处硬、远处软的渐进式阴影
-
-2. **截图和提交整理**
+1. **截图和提交整理**
    - 新建 `images/` 文件夹
    - 分别截取硬阴影、PCF、PCSS 效果图
    - 提交时删除 `/lib` 和 `/assets`
@@ -94,10 +90,13 @@ http-server . -p 8000 -c-1
 |------|-----|------|
 | Shadow Map 分辨率 | 8192×8192 | `engine.js` |
 | 光源位置 | (0, 80, 80) | `engine.js` |
-| 正交投影范围 | ±100, near=1, far=500 | `DirectionalLight.js` |
-| PCF 采样数 | 20 | `phongFragment.glsl` |
-| PCF filterSize | 0.005 | `phongFragment.glsl` |
-| PCF bias | 0.01 | `phongFragment.glsl` |
+| 正交投影范围 | left/right=±120, bottom=-70, top=110, near=40, far=240 | `DirectionalLight.js` |
+| PCF/PCSS 采样数 | 40 | `phongFragment.glsl` |
+| Shadow bias | 0.004 | `phongFragment.glsl` |
+| PCF filterSize | 0.0035 | `phongFragment.glsl` |
+| PCSS blocker search size | 0.0045 | `phongFragment.glsl` |
+| PCSS light size | 0.007 | `phongFragment.glsl` |
+| PCSS filterSize 范围 | 0.0008 ~ 0.009 | `phongFragment.glsl` |
 | 纹理 wrap 模式 | CLAMP_TO_EDGE | `FBO.js` |
 
 ## 切换阴影模式
@@ -106,6 +105,8 @@ http-server . -p 8000 -c-1
 
 ```glsl
 // visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));  // 任务1：硬阴影
-visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));              // 任务2：PCF ← 当前
-// visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));          // 任务3：PCSS（未实现）
+visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));              // 任务2：PCF
+// visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));          // 任务3：PCSS
 ```
+
+每次切换阴影模式后，请在浏览器中使用 `Ctrl + Shift + R` 强制刷新，避免浏览器缓存旧的 GLSL 文件。
