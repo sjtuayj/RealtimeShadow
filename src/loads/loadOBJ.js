@@ -42,25 +42,29 @@ function loadOBJ(renderer, path, name, objMaterial, transform) {
 								colorMap.CreateConstantTexture(renderer.gl, mat.color.toArray());
 							}
 
-							let material, shadowMaterial;
 							let Translation = [transform.modelTransX, transform.modelTransY, transform.modelTransZ];
 							let Scale = [transform.modelScaleX, transform.modelScaleY, transform.modelScaleZ];
 
-							let light = renderer.lights[0].entity;
 							switch (objMaterial) {
 								case 'PhongMaterial':
-									material = buildPhongMaterial(colorMap, mat.specular.toArray(), light, Translation, Scale, "./src/shaders/phongShader/phongVertex.glsl", "./src/shaders/phongShader/phongFragment.glsl");
-									shadowMaterial = buildShadowMaterial(light, Translation, Scale, "./src/shaders/shadowShader/shadowVertex.glsl", "./src/shaders/shadowShader/shadowFragment.glsl");
+									material = buildPhongMaterial(colorMap, mat.specular.toArray(), renderer.lights[0].entity, Translation, Scale, "./src/shaders/phongShader/phongVertex.glsl", "./src/shaders/phongShader/phongFragment.glsl");
+									// Create ShadowMaterial for each shadow-casting light
+									for (let li = 0; li < renderer.lights.length; li++) {
+										let light = renderer.lights[li].entity;
+										if (light.hasShadowMap) {
+											let sm = buildShadowMaterial(light, Translation, Scale, "./src/shaders/shadowShader/shadowVertex.glsl", "./src/shaders/shadowShader/shadowFragment.glsl");
+											sm.then((data) => {
+												let shadowMeshRender = new MeshRender(renderer.gl, mesh, data);
+												renderer.addShadowMeshRender(li, shadowMeshRender);
+											});
+										}
+									}
 									break;
 							}
 
 							material.then((data) => {
 								let meshRender = new MeshRender(renderer.gl, mesh, data);
 								renderer.addMeshRender(meshRender);
-							});
-							shadowMaterial.then((data) => {
-								let shadowMeshRender = new MeshRender(renderer.gl, mesh, data);
-								renderer.addShadowMeshRender(shadowMeshRender);
 							});
 						}
 					});

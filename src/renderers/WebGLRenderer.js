@@ -1,6 +1,6 @@
 class WebGLRenderer {
     meshes = [];
-    shadowMeshes = [];
+    shadowMeshes = [];  // shadowMeshes[lightIndex] = [...]
     lights = [];
 
     constructor(gl, camera) {
@@ -16,14 +16,16 @@ class WebGLRenderer {
         });
     }
     addMeshRender(mesh) { this.meshes.push(mesh); }
-    addShadowMeshRender(mesh) { this.shadowMeshes.push(mesh); }
+    addShadowMeshRender(lightIndex, mesh) {
+        if (!this.shadowMeshes[lightIndex]) this.shadowMeshes[lightIndex] = [];
+        this.shadowMeshes[lightIndex].push(mesh);
+    }
 
     // --- Debug Quad (bottom-right Shadow Map overlay) ---
     _setupDebugQuad() {
         if (this._debugQuadReady) return;
         const gl = this.gl;
 
-        // Compile debug shader
         const debugShader = new Shader(gl,
             DebugShadowMapVertexShader,
             DebugShadowMapFragmentShader,
@@ -31,13 +33,11 @@ class WebGLRenderer {
         );
         this._debugShader = debugShader;
 
-        // Quad: NDC bottom-right 25%
-        // pos(x,y) + texcoord(u,v) interleaved, 4 floats per vertex
         const vertices = new Float32Array([
-            0.5, -0.5,  0.0, 1.0,  // top-left
-            1.0, -0.5,  1.0, 1.0,  // top-right
-            1.0, -1.0,  1.0, 0.0,  // bottom-right
-            0.5, -1.0,  0.0, 0.0,  // bottom-left
+            0.5, -0.5,  0.0, 1.0,
+            1.0, -0.5,  1.0, 1.0,
+            1.0, -1.0,  1.0, 0.0,
+            0.5, -1.0,  0.0, 0.0,
         ]);
         const indices = new Uint16Array([0, 1, 2, 0, 2, 3]);
 
@@ -62,7 +62,6 @@ class WebGLRenderer {
         gl.disable(gl.DEPTH_TEST);
         gl.useProgram(prog.glShaderProgram);
 
-        // Bind interleaved vertex buffer: [x,y, u,v] × 4
         gl.bindBuffer(gl.ARRAY_BUFFER, this._debugQuadVBO);
         const FLOAT_SIZE = 4;
         const stride = 4 * FLOAT_SIZE;
@@ -71,12 +70,10 @@ class WebGLRenderer {
         gl.vertexAttribPointer(prog.attribs.aTexCoord, 2, gl.FLOAT, false, stride, 2 * FLOAT_SIZE);
         gl.enableVertexAttribArray(prog.attribs.aTexCoord);
 
-        // Bind shadow map
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, fboTexture);
         gl.uniform1i(prog.uniforms.uShadowMap, 0);
 
-        // Draw
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._debugQuadIBO);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
@@ -85,49 +82,82 @@ class WebGLRenderer {
         gl.enable(gl.DEPTH_TEST);
     }
 
+    // Update per-light uniforms on a material for the current light pass
+    _updateLightUniforms(meshRender, light, isFirstLight) {
+        // Recalculate light MVP for moving lights
+        let t = meshRender.mesh.transform.translate;
+        let s = meshRender.mesh.transform.scale;
+        let mvp = light.CalcLightMVP([t[0], t[1], t[2]], [s[0], s[1], s[2]]);
+
+        meshRender.material.uniforms.uLightMVP.value = mvp;
+        meshRender.material.uniforms.uShadowMap.value = light.fbo;
+        meshRender.material.uniforms.uLightIntensity.value = light.mat.GetIntensity();
+        meshRender.material.uniforms.uApplyAmbient.value = isFirstLight ? 1.0 : 0.0;
+    }
+
     render() {
         const gl = this.gl;
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-        gl.clearDepth(1.0); // Clear everything
-        gl.enable(gl.DEPTH_TEST); // Enable depth testing
-        gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearDepth(1.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        console.assert(this.lights.length != 0, "No light");
-        console.assert(this.lights.length == 1, "Multiple lights");
+        let isFirstLight = true;
 
         for (let l = 0; l < this.lights.length; l++) {
-            // Draw light
-            // TODO: Support all kinds of transform
-            this.lights[l].meshRender.mesh.transform.translate = this.lights[l].entity.lightPos;
+            let light = this.lights[l].entity;
+
+            // Draw light cube
+            this.lights[l].meshRender.mesh.transform.translate = light.lightPos;
             this.lights[l].meshRender.draw(this.camera);
 
-            // Shadow pass
-            if (this.lights[l].entity.hasShadowMap == true) {
-                gl.bindFramebuffer(gl.FRAMEBUFFER, this.lights[l].entity.fbo);
+            // --- Shadow Pass for this light ---
+            if (light.hasShadowMap && this.shadowMeshes[l]) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, light.fbo);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                for (let i = 0; i < this.shadowMeshes.length; i++) {
-                    this.shadowMeshes[i].draw(this.camera);
+                for (let i = 0; i < this.shadowMeshes[l].length; i++) {
+                    let sm = this.shadowMeshes[l][i];
+                    // Update light MVP for shadow pass (moving lights)
+                    let t = sm.mesh.transform.translate;
+                    let s = sm.mesh.transform.scale;
+                    sm.material.uniforms.uLightMVP.value = light.CalcLightMVP([t[0], t[1], t[2]], [s[0], s[1], s[2]]);
+                    sm.draw(this.camera);
                 }
             }
 
-            // Camera pass
+            // --- Camera Pass ---
+            // Subsequent lights use additive blending (no ambient)
+            if (!isFirstLight) {
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ONE);
+            }
+
             for (let i = 0; i < this.meshes.length; i++) {
-                this.gl.useProgram(this.meshes[i].shader.program.glShaderProgram);
-                this.gl.uniform3fv(this.meshes[i].shader.program.uniforms.uLightPos, this.lights[l].entity.lightPos);
+                let mr = this.meshes[i];
+                gl.useProgram(mr.shader.program.glShaderProgram);
+                gl.uniform3fv(mr.shader.program.uniforms.uLightPos, light.lightPos);
 
-                // Debug uniforms: update material value so bindMaterialParameters() picks it up
-                if (this.meshes[i].material.uniforms.uDebugShowBlocker) {
-                    this.meshes[i].material.uniforms.uDebugShowBlocker.value = window.debugShowBlocker ? 1 : 0;
+                // Update per-light uniforms (dynamic MVP, shadow map, intensity, ambient flag)
+                this._updateLightUniforms(mr, light, isFirstLight);
+
+                // Debug uniforms
+                if (mr.material.uniforms.uDebugShowBlocker) {
+                    mr.material.uniforms.uDebugShowBlocker.value = window.debugShowBlocker ? 1 : 0;
                 }
 
-                this.meshes[i].draw(this.camera);
+                mr.draw(this.camera);
             }
+
+            if (!isFirstLight) {
+                gl.disable(gl.BLEND);
+            }
+            isFirstLight = false;
         }
 
-        // --- Debug: Shadow Map overlay quad (independent quad, always on top) ---
+        // --- Debug: Shadow Map overlay ---
         if (window.debugShowShadowMap && this.lights.length > 0 && this.lights[0].entity.fbo) {
             this._renderDebugShadowMap(this.lights[0].entity.fbo.texture);
         }

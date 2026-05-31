@@ -37,6 +37,9 @@ varying vec4 vPositionFromLight;
 // Debug uniform
 uniform int uDebugShowBlocker;
 
+// Multi-light: 1.0 for first light (include ambient), 0.0 for subsequent passes
+uniform float uApplyAmbient;
+
 highp float rand_1to1(highp float x ) { 
   // -1 -1
   return fract(sin(x)*10000.0);
@@ -216,7 +219,7 @@ vec3 blinnPhong(float visibility) {
   float spec = pow(max(dot(halfDir, normal), 0.0), 32.0);
   vec3 specular = uKs * light_atten_coff * spec;
 
-  vec3 radiance = ambient + visibility * (diffuse + specular);
+  vec3 radiance = uApplyAmbient * ambient + visibility * (diffuse + specular);
   vec3 phongColor = pow(radiance, vec3(1.0 / 2.2));
   return phongColor;
 }

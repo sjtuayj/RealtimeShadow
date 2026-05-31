@@ -12,10 +12,15 @@ class PhongMaterial extends Material {
             // Shadow
             'uShadowMap': { type: 'texture', value: light.fbo },
             'uLightMVP': { type: 'matrix4fv', value: lightMVP },
+            // Multi-light: ambient only in first pass
+            'uApplyAmbient': { type: '1f', value: 1.0 },
             // Debug
             'uDebugShowBlocker': { type: '1i', value: 0 },
 
         }, [], vertexShader, fragmentShader);
+
+        // Store reference for per-frame light updates
+        this._light = light;
     }
 }
 

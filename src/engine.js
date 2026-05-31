@@ -42,16 +42,19 @@ function GAMES202Main() {
 	// Add renderer
 	const renderer = new WebGLRenderer(gl, camera);
 
-	// Add lights
-	// light - is open shadow map == true
-	let lightPos = [0, 80, 80];
+	// Add lights — two directional lights with shadows
 	let focalPoint = [0, 0, 0];
-	let lightUp = [0, 1, 0]
-	const directionLight = new DirectionalLight(5000, [1, 1, 1], lightPos, focalPoint, lightUp, true, renderer.gl);
-	renderer.addLight(directionLight);
+	let lightUp = [0, 1, 0];
+
+	// Light 0: stationary main light (top-right)
+	const light0 = new DirectionalLight(3000, [1.0, 0.95, 0.9], [0, 80, 80], focalPoint, lightUp, true, renderer.gl);
+	renderer.addLight(light0);
+
+	// Light 1: orbiting light (will animate in mainLoop)
+	const light1 = new DirectionalLight(2500, [0.7, 0.8, 1.0], [80, 70, 0], focalPoint, lightUp, true, renderer.gl);
+	renderer.addLight(light1);
 
 	// Add shapes
-
 	let floorTransform = setTransform(0, 0, -30, 4, 4, 4);
 	let obj1Transform = setTransform(0, 0, 0, 20, 20, 20);
 	let obj2Transform = setTransform(40, 0, -40, 10, 10, 10);
@@ -60,24 +63,16 @@ function GAMES202Main() {
 	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj2Transform);
 	loadOBJ(renderer, 'assets/floor/', 'floor', 'PhongMaterial', floorTransform);
 
-
-	// let floorTransform = setTransform(0, 0, 0, 100, 100, 100);
-	// let cubeTransform = setTransform(0, 50, 0, 10, 50, 10);
-	// let sphereTransform = setTransform(30, 10, 0, 10, 10, 10);
-
-	//loadOBJ(renderer, 'assets/basic/', 'cube', 'PhongMaterial', cubeTransform);
-	// loadOBJ(renderer, 'assets/basic/', 'sphere', 'PhongMaterial', sphereTransform);
-	//loadOBJ(renderer, 'assets/basic/', 'plane', 'PhongMaterial', floorTransform);
-
-
 	function createGUI() {
 		const gui = new dat.gui.GUI();
 		const debugCfg = {
 			showShadowMap: false,
 			showBlocker: false,
+			animateLight: true,
 		};
 		window.debugShowShadowMap = false;
 		window.debugShowBlocker = false;
+		window.animateLight = true;
 
 		const debugFolder = gui.addFolder('Debug');
 		debugFolder.add(debugCfg, 'showShadowMap').name('Show Shadow Map').onChange(function(v) {
@@ -86,12 +81,23 @@ function GAMES202Main() {
 		debugFolder.add(debugCfg, 'showBlocker').name('Show Blocker Search').onChange(function(v) {
 			window.debugShowBlocker = v;
 		});
+		debugFolder.add(debugCfg, 'animateLight').name('Animate Light 1').onChange(function(v) {
+			window.animateLight = v;
+		});
 		debugFolder.open();
 	}
 	createGUI();
 
 	function mainLoop(now) {
 		cameraControls.update();
+
+		// Animate orbiting light
+		if (window.animateLight) {
+			let angle = now * 0.0005;
+			let radius = 100;
+			light1.lightPos[0] = Math.cos(angle) * radius;
+			light1.lightPos[2] = Math.sin(angle) * radius;
+		}
 
 		renderer.render();
 		requestAnimationFrame(mainLoop);
