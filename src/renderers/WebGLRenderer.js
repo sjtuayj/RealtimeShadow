@@ -118,9 +118,9 @@ class WebGLRenderer {
                 this.gl.useProgram(this.meshes[i].shader.program.glShaderProgram);
                 this.gl.uniform3fv(this.meshes[i].shader.program.uniforms.uLightPos, this.lights[l].entity.lightPos);
 
-                // Debug uniforms (from global state)
-                if (this.meshes[i].shader.program.uniforms.uDebugShowBlocker) {
-                    this.gl.uniform1i(this.meshes[i].shader.program.uniforms.uDebugShowBlocker, window.debugShowBlocker ? 1 : 0);
+                // Debug uniforms: update material value so bindMaterialParameters() picks it up
+                if (this.meshes[i].material.uniforms.uDebugShowBlocker) {
+                    this.meshes[i].material.uniforms.uDebugShowBlocker.value = window.debugShowBlocker ? 1 : 0;
                 }
 
                 this.meshes[i].draw(this.camera);
