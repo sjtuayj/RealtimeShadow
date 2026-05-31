@@ -29,11 +29,13 @@
 │   └── objects/
 │       └── Mesh.js             # 网格数据
 ├── assets/                 # 模型资源（Mary + 地板）
+├── images/                 # 报告截图（基础阴影结果 + Blocker 可视化）
 ├── lib/                    # 第三方库（three.js, gl-matrix 等）
 ├── 实时阴影任务大纲.md      # 原始实现计划
 ├── 任务1_ShadowMap硬阴影.md # 任务1 原理 + 实现归档
 ├── 任务2_PCF软阴影.md       # 任务2 原理 + 实现归档
 ├── 任务3_PCSS软阴影.md      # 任务3 原理 + 实现归档
+├── 额外任务_多光源与移动光源.md # 额外任务原理 + 实现归档
 └── 说明.pdf                # 作业说明文档
 ```
 
@@ -47,14 +49,12 @@
 | **任务1：Shadow Map 硬阴影** | ✅ | `DirectionalLight.js`, `phongFragment.glsl`, `WebGLRenderer.js`, `FBO.js` | [任务1_ShadowMap硬阴影.md](任务1_ShadowMap硬阴影.md) |
 | **任务2：PCF 软阴影** | ✅ | `phongFragment.glsl`, `FBO.js` | [任务2_PCF软阴影.md](任务2_PCF软阴影.md) |
 | **任务3：PCSS** | ✅ | `phongFragment.glsl` (`findBlocker`, `PCSS`, `PCFWithFilterSize`) | [任务3_PCSS软阴影.md](任务3_PCSS软阴影.md) |
+| 额外任务：多光源与移动光源 | ✅ | `engine.js`, `WebGLRenderer.js`, `PhongMaterial.js`, `phongFragment.glsl` | [额外任务_多光源与移动光源.md](额外任务_多光源与移动光源.md) |
 | 截图和提交整理 | ✅ | `images/` | [images](./images) |
 
-### 待实现
+### 提交前注意事项
 
-1. **截图和提交整理**
-   - 新建 `images/` 文件夹
-   - 分别截取硬阴影、PCF、PCSS 效果图
-   - 提交时删除 `/lib` 和 `/assets`
+- 提交时按作业要求删除 `/lib` 和 `/assets`。
 
 ## 快速开始
 
@@ -83,6 +83,8 @@ http-server . -p 8000 -c-1
 | 鼠标右键拖拽 | 旋转相机 |
 | 滚轮 | 缩放 |
 | 鼠标左键拖拽 | 平移相机 |
+| Show Shadow Map | 在右下角显示 Shadow Map 灰度小窗 |
+| Show Blocker Search | 显示 Blocker 搜索红绿色标可视化 |
 
 ## 当前参数
 
@@ -92,7 +94,7 @@ http-server . -p 8000 -c-1
 | 光源位置 | (0, 80, 80) | `engine.js` |
 | 正交投影范围 | left/right=±120, bottom=-70, top=110, near=40, far=240 | `DirectionalLight.js` |
 | PCF/PCSS 采样数 | 40 | `phongFragment.glsl` |
-| Shadow bias | 0.004 | `phongFragment.glsl` |
+| Shadow bias | 0.012 | `phongFragment.glsl` |
 | PCF filterSize | 0.0035 | `phongFragment.glsl` |
 | PCSS blocker search size | 0.0045 | `phongFragment.glsl` |
 | PCSS light size | 0.007 | `phongFragment.glsl` |
