@@ -33,10 +33,8 @@ varying highp vec3 vNormal;
 uniform sampler2D uShadowMap;
 
 varying vec4 vPositionFromLight;
-varying vec2 vScreenPos;
 
-// Debug uniforms
-uniform int uDebugShowShadowMap;
+// Debug uniform
 uniform int uDebugShowBlocker;
 
 highp float rand_1to1(highp float x ) { 
@@ -224,25 +222,6 @@ vec3 blinnPhong(float visibility) {
 }
 
 void main(void) {
-
-  // === Shadow Map Debug Overlay (右下角小窗) ===
-  if (uDebugShowShadowMap == 1) {
-    vec2 screenUV = vScreenPos * 0.5 + 0.5;  // NDC [-1,1] → [0,1]
-    if (screenUV.x > 0.75 && screenUV.y < 0.25) {
-      vec2 debugUV = vec2(
-        (screenUV.x - 0.75) / 0.25,
-        screenUV.y / 0.25
-      );
-      // 黄色边框
-      if (debugUV.x < 0.01 || debugUV.x > 0.99 || debugUV.y < 0.01 || debugUV.y > 0.99) {
-        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-        return;
-      }
-      float depth = unpack(texture2D(uShadowMap, debugUV));
-      gl_FragColor = vec4(vec3(depth), 1.0);
-      return;
-    }
-  }
 
   // 透视除法
   vec3 shadowCoord = vPositionFromLight.xyz / vPositionFromLight.w;
