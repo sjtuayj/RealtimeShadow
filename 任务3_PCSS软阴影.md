@@ -357,6 +357,8 @@ visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 - [x] 接触处阴影较硬，远离遮挡物处半影更宽
 - [x] 阴影只衰减直接光照，环境光不被整体压黑
 - [x] 保留硬阴影、PCF、PCSS 三种模式切换方式
+- [x] Shadow Map 右下角小窗可视化
+- [x] Blocker 搜索区域红绿色标可视化
 
 ## 四、调试方向
 
@@ -371,4 +373,64 @@ visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 | 修改 GLSL 后效果没变 | 浏览器缓存旧 shader 文件 | 使用 `Ctrl + Shift + R` 强制刷新 |
 | shadow acne 条纹 | bias 太小 | 增大 `SHADOW_BIAS` |
 | 阴影漂浮 Peter Panning | bias 太大 | 减小 `SHADOW_BIAS` |
+
+---
+
+## 五、额外加分：调试可视化
+
+### 5.1 Shadow Map 可视化（右下角小窗）
+
+**功能**：在画面右下角 25%×25% 区域叠加 Shadow Map 灰度图，实时观察深度缓冲。
+
+**实现**（`phongFragment.glsl` main() 开头）：
+
+```glsl
+if (uDebugShowShadowMap == 1) {
+  if (gl_FragCoord.x > uScreenWidth * 0.75 && gl_FragCoord.y < uScreenHeight * 0.25) {
+    vec2 debugUV = ...
+    if (边缘) { 黄色边框; return; }
+    float depth = unpack(texture2D(uShadowMap, debugUV));
+    gl_FragColor = vec4(vec3(depth), 1.0);
+    return;
+  }
+}
+```
+
+**涉及文件**：
+
+| 文件 | 改动 |
+|------|------|
+| `phongFragment.glsl` | 叠加逻辑 + 黄色边框 |
+| `PhongMaterial.js` | 新增 `uDebugShowShadowMap`, `uScreenWidth`, `uScreenHeight` uniforms |
+| `WebGLRenderer.js` | 每帧从 `window.debugShowShadowMap` 更新 debug uniforms |
+| `engine.js` | dat.gui Debug 面板 → "Show Shadow Map" 复选框 |
+
+### 5.2 Blocker 搜索可视化（红绿色标）
+
+**功能**：实时显示每个片元周围的 blocker 密度。绿色 = 无遮挡物，红色 = 大量遮挡物，中间呈黄/橙渐变。
+
+**原理**：在 blinnPhong 着色后，运行一次 blocker 搜索（与 PCSS 的 Step 1 相同），统计 blocke
+r 比例，用 `mix(绿, 红, ratio)` 插值颜色乘到 `phongColor` 上。
+
+```glsl
+if (uDebugShowBlocker == 1) {
+  poissonDiskSamples(shadowCoord.xy);
+  int blockerCount = 0;
+  for (...) { 统计 blocker }
+  float ratio = blockerCount / float(BLOCKER_SEARCH_NUM_SAMPLES);
+  vec3 debugColor = mix(vec3(0,1,0), vec3(1,0,0), ratio);
+  phongColor *= debugColor;
+}
+```
+
+**GUI 控制**：dat.gui Debug 面板 → "Show Blocker Search" 复选框。
+
+### 5.3 使用方式
+
+1. 浏览器打开页面
+2. 右上角 dat.gui → **Debug** 文件夹
+3. 勾选 "Show Shadow Map" → 右下角显示 Shadow Map 灰度图
+4. 勾选 "Show Blocker Search" → 场景中绿色=直接光照区域，红色=被遮挡区域
+
+两个开关可以同时开启，互不影响。
 
