@@ -23,7 +23,7 @@ varying highp vec3 vNormal;
 #define EPS 1e-3
 #define PI 3.141592653589793
 #define PI2 6.283185307179586
-#define SHADOW_BIAS 0.004
+#define SHADOW_BIAS 0.012
 #define BLOCKER_SEARCH_SIZE 0.0045
 #define LIGHT_SIZE_UV 0.007
 #define PCF_FILTER_SIZE 0.0035
