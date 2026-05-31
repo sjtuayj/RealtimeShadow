@@ -33,12 +33,11 @@ varying highp vec3 vNormal;
 uniform sampler2D uShadowMap;
 
 varying vec4 vPositionFromLight;
+varying vec2 vScreenPos;
 
 // Debug uniforms
 uniform int uDebugShowShadowMap;
 uniform int uDebugShowBlocker;
-uniform float uScreenWidth;
-uniform float uScreenHeight;
 
 highp float rand_1to1(highp float x ) { 
   // -1 -1
@@ -228,10 +227,11 @@ void main(void) {
 
   // === Shadow Map Debug Overlay (右下角小窗) ===
   if (uDebugShowShadowMap == 1) {
-    if (gl_FragCoord.x > uScreenWidth * 0.75 && gl_FragCoord.y < uScreenHeight * 0.25) {
+    vec2 screenUV = vScreenPos * 0.5 + 0.5;  // NDC [-1,1] → [0,1]
+    if (screenUV.x > 0.75 && screenUV.y < 0.25) {
       vec2 debugUV = vec2(
-        (gl_FragCoord.x - uScreenWidth * 0.75) / (uScreenWidth * 0.25),
-        gl_FragCoord.y / (uScreenHeight * 0.25)
+        (screenUV.x - 0.75) / 0.25,
+        screenUV.y / 0.25
       );
       // 黄色边框
       if (debugUV.x < 0.01 || debugUV.x > 0.99 || debugUV.y < 0.01 || debugUV.y > 0.99) {

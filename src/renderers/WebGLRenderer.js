@@ -54,8 +54,6 @@ class WebGLRenderer {
                 if (this.meshes[i].shader.program.uniforms.uDebugShowShadowMap) {
                     this.gl.uniform1i(this.meshes[i].shader.program.uniforms.uDebugShowShadowMap, window.debugShowShadowMap ? 1 : 0);
                     this.gl.uniform1i(this.meshes[i].shader.program.uniforms.uDebugShowBlocker, window.debugShowBlocker ? 1 : 0);
-                    this.gl.uniform1f(this.meshes[i].shader.program.uniforms.uScreenWidth, window.screen.width);
-                    this.gl.uniform1f(this.meshes[i].shader.program.uniforms.uScreenHeight, window.screen.height);
                 }
 
                 this.meshes[i].draw(this.camera);

@@ -11,6 +11,7 @@ varying highp vec2 vTextureCoord;
 varying highp vec3 vFragPos;
 varying highp vec3 vNormal;
 varying highp vec4 vPositionFromLight;
+varying highp vec2 vScreenPos;
 
 void main(void) {
 
@@ -22,4 +23,5 @@ void main(void) {
 
   vTextureCoord = aTextureCoord;
   vPositionFromLight = uLightMVP * vec4(aVertexPosition, 1.0);
+  vScreenPos = gl_Position.xy / gl_Position.w;  // NDC [-1, 1]
 }
