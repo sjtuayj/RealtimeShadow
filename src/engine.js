@@ -51,7 +51,7 @@ function GAMES202Main() {
 	renderer.addLight(directionLight);
 
 	// Add shapes
-	
+
 	let floorTransform = setTransform(0, 0, -30, 4, 4, 4);
 	let obj1Transform = setTransform(0, 0, 0, 20, 20, 20);
 	let obj2Transform = setTransform(40, 0, -40, 10, 10, 10);
@@ -59,7 +59,7 @@ function GAMES202Main() {
 	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj1Transform);
 	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj2Transform);
 	loadOBJ(renderer, 'assets/floor/', 'floor', 'PhongMaterial', floorTransform);
-	
+
 
 	// let floorTransform = setTransform(0, 0, 0, 100, 100, 100);
 	// let cubeTransform = setTransform(0, 50, 0, 10, 50, 10);
@@ -72,9 +72,21 @@ function GAMES202Main() {
 
 	function createGUI() {
 		const gui = new dat.gui.GUI();
-		// const panelModel = gui.addFolder('Model properties');
-		// panelModelTrans.add(GUIParams, 'x').name('X');
-		// panelModel.open();
+		const debugCfg = {
+			showShadowMap: false,
+			showBlocker: false,
+		};
+		window.debugShowShadowMap = false;
+		window.debugShowBlocker = false;
+
+		const debugFolder = gui.addFolder('Debug');
+		debugFolder.add(debugCfg, 'showShadowMap').name('Show Shadow Map').onChange(function(v) {
+			window.debugShowShadowMap = v;
+		});
+		debugFolder.add(debugCfg, 'showBlocker').name('Show Blocker Search').onChange(function(v) {
+			window.debugShowBlocker = v;
+		});
+		debugFolder.open();
 	}
 	createGUI();
 

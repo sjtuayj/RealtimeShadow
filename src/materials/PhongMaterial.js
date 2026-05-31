@@ -12,6 +12,11 @@ class PhongMaterial extends Material {
             // Shadow
             'uShadowMap': { type: 'texture', value: light.fbo },
             'uLightMVP': { type: 'matrix4fv', value: lightMVP },
+            // Debug
+            'uDebugShowShadowMap': { type: '1i', value: 0 },
+            'uDebugShowBlocker': { type: '1i', value: 0 },
+            'uScreenWidth': { type: '1f', value: window.screen.width },
+            'uScreenHeight': { type: '1f', value: window.screen.height },
 
         }, [], vertexShader, fragmentShader);
     }

@@ -49,6 +49,15 @@ class WebGLRenderer {
             for (let i = 0; i < this.meshes.length; i++) {
                 this.gl.useProgram(this.meshes[i].shader.program.glShaderProgram);
                 this.gl.uniform3fv(this.meshes[i].shader.program.uniforms.uLightPos, this.lights[l].entity.lightPos);
+
+                // Debug uniforms (from global state, defaults to 0 if not set)
+                if (this.meshes[i].shader.program.uniforms.uDebugShowShadowMap) {
+                    this.gl.uniform1i(this.meshes[i].shader.program.uniforms.uDebugShowShadowMap, window.debugShowShadowMap ? 1 : 0);
+                    this.gl.uniform1i(this.meshes[i].shader.program.uniforms.uDebugShowBlocker, window.debugShowBlocker ? 1 : 0);
+                    this.gl.uniform1f(this.meshes[i].shader.program.uniforms.uScreenWidth, window.screen.width);
+                    this.gl.uniform1f(this.meshes[i].shader.program.uniforms.uScreenHeight, window.screen.height);
+                }
+
                 this.meshes[i].draw(this.camera);
             }
         }

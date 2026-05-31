@@ -34,6 +34,12 @@ uniform sampler2D uShadowMap;
 
 varying vec4 vPositionFromLight;
 
+// Debug uniforms
+uniform int uDebugShowShadowMap;
+uniform int uDebugShowBlocker;
+uniform float uScreenWidth;
+uniform float uScreenHeight;
+
 highp float rand_1to1(highp float x ) { 
   // -1 -1
   return fract(sin(x)*10000.0);
@@ -220,10 +226,28 @@ vec3 blinnPhong(float visibility) {
 
 void main(void) {
 
+  // === Shadow Map Debug Overlay (右下角小窗) ===
+  if (uDebugShowShadowMap == 1) {
+    if (gl_FragCoord.x > uScreenWidth * 0.75 && gl_FragCoord.y < uScreenHeight * 0.25) {
+      vec2 debugUV = vec2(
+        (gl_FragCoord.x - uScreenWidth * 0.75) / (uScreenWidth * 0.25),
+        gl_FragCoord.y / (uScreenHeight * 0.25)
+      );
+      // 黄色边框
+      if (debugUV.x < 0.01 || debugUV.x > 0.99 || debugUV.y < 0.01 || debugUV.y > 0.99) {
+        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+        return;
+      }
+      float depth = unpack(texture2D(uShadowMap, debugUV));
+      gl_FragColor = vec4(vec3(depth), 1.0);
+      return;
+    }
+  }
+
   // 透视除法
   vec3 shadowCoord = vPositionFromLight.xyz / vPositionFromLight.w;
   // vec3 shadowCoord = vPositionFromLight.xyz;
-  // 归一化至 [0,1] 
+  // 归一化至 [0,1]
   shadowCoord = shadowCoord * 0.5 + 0.5;
 
   float visibility;
@@ -232,6 +256,23 @@ void main(void) {
   // visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 
   vec3 phongColor = blinnPhong(visibility);
+
+  // === Blocker Search Debug ===
+  if (uDebugShowBlocker == 1) {
+    poissonDiskSamples(shadowCoord.xy);
+    int blockerCount = 0;
+    for (int i = 0; i < BLOCKER_SEARCH_NUM_SAMPLES; i++) {
+      vec2 sampleUV = shadowCoord.xy + poissonDisk[i] * BLOCKER_SEARCH_SIZE;
+      if (sampleUV.x >= 0.0 && sampleUV.x <= 1.0 && sampleUV.y >= 0.0 && sampleUV.y <= 1.0) {
+        float d = unpack(texture2D(uShadowMap, sampleUV));
+        if (shadowCoord.z - SHADOW_BIAS > d) blockerCount++;
+      }
+    }
+    float blockerRatio = float(blockerCount) / float(BLOCKER_SEARCH_NUM_SAMPLES);
+    // 绿色(无blocker) → 红色(全是blocker)
+    vec3 debugColor = mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), blockerRatio);
+    phongColor = phongColor * debugColor;
+  }
 
   gl_FragColor = vec4(phongColor, 1.0);
   // gl_FragColor = vec4(phongColor, 1.0);
