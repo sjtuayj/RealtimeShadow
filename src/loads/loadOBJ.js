@@ -1,4 +1,4 @@
-function loadOBJ(renderer, path, name, objMaterial, transform) {
+function loadOBJ(renderer, path, name, objMaterial, transform, onTransformReady) {
 
 	const manager = new THREE.LoadingManager();
 	manager.onProgress = function (item, loaded, total) {
@@ -33,6 +33,11 @@ function loadOBJ(renderer, path, name, objMaterial, transform) {
 								{ name: 'aNormalPosition', array: geo.attributes.normal.array },
 								{ name: 'aTextureCoord', array: geo.attributes.uv.array },
 								indices, transform);
+
+							// Notify caller that the mesh transform is ready (for animation)
+							if (onTransformReady) {
+								onTransformReady(mesh.transform);
+							}
 
 							let colorMap = new Texture();
 							if (mat.map != null) {

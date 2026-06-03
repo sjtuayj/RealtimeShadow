@@ -59,8 +59,13 @@ function GAMES202Main() {
 	let obj1Transform = setTransform(0, 0, 0, 20, 20, 20);
 	let obj2Transform = setTransform(40, 0, -40, 10, 10, 10);
 
+	// Store transform reference for animating the small Mary
+	let smallMaryTransform = null;
+
 	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj1Transform);
-	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj2Transform);
+	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj2Transform, function(t) {
+		smallMaryTransform = t;
+	});
 	loadOBJ(renderer, 'assets/floor/', 'floor', 'PhongMaterial', floorTransform);
 
 	function createGUI() {
@@ -69,10 +74,12 @@ function GAMES202Main() {
 			showShadowMap: false,
 			showBlocker: false,
 			animateLight: true,
+			animateModel: true,
 		};
 		window.debugShowShadowMap = false;
 		window.debugShowBlocker = false;
 		window.animateLight = true;
+		window.animateModel = true;
 
 		const debugFolder = gui.addFolder('Debug');
 		debugFolder.add(debugCfg, 'showShadowMap').name('Show Shadow Map').onChange(function(v) {
@@ -83,6 +90,9 @@ function GAMES202Main() {
 		});
 		debugFolder.add(debugCfg, 'animateLight').name('Animate Light 1').onChange(function(v) {
 			window.animateLight = v;
+		});
+		debugFolder.add(debugCfg, 'animateModel').name('Animate Model').onChange(function(v) {
+			window.animateModel = v;
 		});
 		debugFolder.open();
 	}
@@ -97,6 +107,14 @@ function GAMES202Main() {
 			let radius = 100;
 			light1.lightPos[0] = Math.cos(angle) * radius;
 			light1.lightPos[2] = Math.sin(angle) * radius;
+		}
+
+		// Animate small Mary: self-rotation + circular translation
+		if (window.animateModel && smallMaryTransform) {
+			let t = now * 0.001;
+			smallMaryTransform.translate[0] = 40 + Math.sin(t * 0.4) * 25;
+			smallMaryTransform.translate[2] = -40 + Math.cos(t * 0.4) * 25;
+			smallMaryTransform.rotation[1] = t * 0.6;  // spin around Y axis
 		}
 
 		renderer.render();
