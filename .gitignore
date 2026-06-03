@@ -1,2 +1,4 @@
 .claude/
 .vscode/
+*.pptx
+pdf_text.txt
