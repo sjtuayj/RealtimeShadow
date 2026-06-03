@@ -59,12 +59,12 @@ function GAMES202Main() {
 	let obj1Transform = setTransform(0, 0, 0, 20, 20, 20);
 	let obj2Transform = setTransform(40, 0, -40, 10, 10, 10);
 
-	// Store transform reference for animating the small Mary
-	let smallMaryTransform = null;
+	// OBJ may contain multiple sub-meshes (body + 202 badge), collect all transforms
+	let smallMaryTransforms = [];
 
 	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj1Transform);
 	loadOBJ(renderer, 'assets/mary/', 'Marry', 'PhongMaterial', obj2Transform, function(t) {
-		smallMaryTransform = t;
+		smallMaryTransforms.push(t);
 	});
 	loadOBJ(renderer, 'assets/floor/', 'floor', 'PhongMaterial', floorTransform);
 
@@ -110,11 +110,17 @@ function GAMES202Main() {
 		}
 
 		// Animate small Mary: self-rotation + circular translation
-		if (window.animateModel && smallMaryTransform) {
+		if (window.animateModel && smallMaryTransforms.length > 0) {
 			let t = now * 0.001;
-			smallMaryTransform.translate[0] = 40 + Math.sin(t * 0.4) * 25;
-			smallMaryTransform.translate[2] = -40 + Math.cos(t * 0.4) * 25;
-			smallMaryTransform.rotation[1] = t * 0.6;  // spin around Y axis
+			let tx = 40 + Math.sin(t * 0.4) * 25;
+			let tz = -40 + Math.cos(t * 0.4) * 25;
+			let ry = t * 0.6;
+			// Update all sub-meshes (body + 202 badge) together
+			for (let i = 0; i < smallMaryTransforms.length; i++) {
+				smallMaryTransforms[i].translate[0] = tx;
+				smallMaryTransforms[i].translate[2] = tz;
+				smallMaryTransforms[i].rotation[1] = ry;
+			}
 		}
 
 		renderer.render();
