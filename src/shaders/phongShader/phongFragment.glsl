@@ -37,6 +37,9 @@ varying vec4 vPositionFromLight;
 // Debug uniform
 uniform int uDebugShowBlocker;
 
+// Shadow mode: 0=PCF, 1=PCSS, 2=Hard
+uniform int uShadowMode;
+
 // Multi-light: 1.0 for first light (include ambient), 0.0 for subsequent passes
 uniform float uApplyAmbient;
 
@@ -233,9 +236,13 @@ void main(void) {
   shadowCoord = shadowCoord * 0.5 + 0.5;
 
   float visibility;
-  // visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
-  visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
-  // visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
+  if (uShadowMode == 1) {
+    visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
+  } else if (uShadowMode == 2) {
+    visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
+  } else {
+    visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
+  }
 
   vec3 phongColor = blinnPhong(visibility);
 

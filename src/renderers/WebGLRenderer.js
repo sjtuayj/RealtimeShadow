@@ -147,6 +147,9 @@ class WebGLRenderer {
                 if (mr.material.uniforms.uDebugShowBlocker) {
                     mr.material.uniforms.uDebugShowBlocker.value = window.debugShowBlocker ? 1 : 0;
                 }
+                if (mr.material.uniforms.uShadowMode) {
+                    mr.material.uniforms.uShadowMode.value = window.shadowMode || 0;
+                }
 
                 mr.draw(this.camera);
             }

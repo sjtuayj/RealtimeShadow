@@ -16,6 +16,8 @@ class PhongMaterial extends Material {
             'uApplyAmbient': { type: '1f', value: 1.0 },
             // Debug
             'uDebugShowBlocker': { type: '1i', value: 0 },
+            // Shadow mode: 0=PCF, 1=PCSS, 2=Hard
+            'uShadowMode': { type: '1i', value: 0 },
 
         }, [], vertexShader, fragmentShader);
 

@@ -80,6 +80,7 @@ function GAMES202Main() {
 		window.debugShowBlocker = false;
 		window.animateLight = true;
 		window.animateModel = true;
+		window.shadowMode = 0;
 
 		const debugFolder = gui.addFolder('Debug');
 		debugFolder.add(debugCfg, 'showShadowMap').name('Show Shadow Map').onChange(function(v) {
@@ -88,13 +89,18 @@ function GAMES202Main() {
 		debugFolder.add(debugCfg, 'showBlocker').name('Show Blocker Search').onChange(function(v) {
 			window.debugShowBlocker = v;
 		});
-		debugFolder.add(debugCfg, 'animateLight').name('Animate Light 1').onChange(function(v) {
+		debugFolder.add(debugCfg, 'animateLight').name('Animate Light').onChange(function(v) {
 			window.animateLight = v;
 		});
 		debugFolder.add(debugCfg, 'animateModel').name('Animate Model').onChange(function(v) {
 			window.animateModel = v;
 		});
 		debugFolder.open();
+
+		// Shadow mode selector
+		gui.add({ mode: 0 }, 'mode', { 'PCF': 0, 'PCSS': 1, 'Hard': 2 }).name('Shadow Mode').onChange(function(v) {
+			window.shadowMode = v;
+		});
 	}
 	createGUI();
 
@@ -115,7 +121,6 @@ function GAMES202Main() {
 			let tx = 40 + Math.sin(t * 0.4) * 25;
 			let tz = -40 + Math.cos(t * 0.4) * 25;
 			let ry = t * 0.6;
-			// Update all sub-meshes (body + 202 badge) together
 			for (let i = 0; i < smallMaryTransforms.length; i++) {
 				smallMaryTransforms[i].translate[0] = tx;
 				smallMaryTransforms[i].translate[2] = tz;
