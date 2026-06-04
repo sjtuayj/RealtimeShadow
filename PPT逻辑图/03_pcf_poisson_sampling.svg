@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}.title{font:700 42px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.h{font:700 28px Arial,"Microsoft YaHei",sans-serif;fill:#172033}
+      .t{font:400 23px Arial,"Microsoft YaHei",sans-serif;fill:#334155}.code{font:400 22px Consolas,"Microsoft YaHei",monospace;fill:#263244}.muted{font:400 19px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+      .card{fill:#fff;stroke:#d8e0eb;stroke-width:3;rx:18}.disk{fill:#eaf2ff;stroke:#2563eb;stroke-width:4}.sample{fill:#2563eb}.bad{fill:#ef4444}.good{fill:#22c55e}.edge{stroke:#64748b;stroke-width:2;stroke-dasharray:8 8;fill:none}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="88">PCF · Poisson 圆盘多采样</text>
+  <rect class="card" x="110" y="170" width="700" height="640"/>
+  <text class="h" x="160" y="235">从一次比较变成 N 次比较取平均</text>
+  <text class="code" x="160" y="295">visibility = (1/N) Σ shadowTest(uv + offsetᵢ × r)</text>
+  <text class="t" x="160" y="355">固定滤波半径：PCF_FILTER_SIZE = 0.0035</text>
+  <text class="t" x="160" y="395">采样数量：NUM_SAMPLES = 40</text>
+  <text class="t" x="160" y="435">采样分布：Poisson disk，均匀但不规则</text>
+  <text class="muted" x="160" y="505">效果：二值硬边 → 连续可见性，阴影边缘被柔化</text>
+  <rect x="160" y="555" width="590" height="120" rx="16" fill="#edf8f1" stroke="#22a35f" stroke-width="3"/>
+  <text class="t" x="195" y="607">每个 sampleUV 都做边界检查</text>
+  <text class="muted" x="195" y="645">越界采样点视为可见，避免边缘错误阴影</text>
+
+  <rect class="card" x="910" y="170" width="500" height="640"/>
+  <text class="h" x="1018" y="235">Shadow Map UV 邻域</text>
+  <circle class="disk" cx="1160" cy="505" r="235"/>
+  <circle class="edge" cx="1160" cy="505" r="110"/>
+  <circle cx="1160" cy="505" r="14" fill="#111827"/>
+  <text class="muted" x="1180" y="500">receiver uv</text>
+  <g>
+    <circle class="sample" cx="1178" cy="392" r="9"/><circle class="sample" cx="1072" cy="458" r="9"/><circle class="sample" cx="1246" cy="466" r="9"/>
+    <circle class="sample" cx="1036" cy="575" r="9"/><circle class="sample" cx="1166" cy="628" r="9"/><circle class="sample" cx="1298" cy="568" r="9"/>
+    <circle class="sample" cx="1114" cy="356" r="9"/><circle class="sample" cx="1308" cy="421" r="9"/><circle class="sample" cx="991" cy="510" r="9"/>
+    <circle class="sample" cx="1210" cy="712" r="9"/><circle class="sample" cx="1360" cy="514" r="9"/><circle class="sample" cx="1042" cy="692" r="9"/>
+  </g>
+  <text class="muted" x="1038" y="772">蓝点：Poisson offsets × filterSize</text>
+</svg>

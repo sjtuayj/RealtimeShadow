@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#fbfcff}.title{font:700 42px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.h{font:700 28px Arial,"Microsoft YaHei",sans-serif;fill:#172033}
+      .t{font:400 23px Arial,"Microsoft YaHei",sans-serif;fill:#334155}.code{font:400 21px Consolas,"Microsoft YaHei",monospace;fill:#263244}.muted{font:400 19px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+      .card{fill:#fff;stroke:#d8e0eb;stroke-width:3;rx:20}.a{fill:#fff7e6;stroke:#d39500;stroke-width:3;rx:18}.b{fill:#eaf2ff;stroke:#2563eb;stroke-width:3;rx:18}.c{fill:#edf8f1;stroke:#22a35f;stroke-width:3;rx:18}
+      .arr{stroke:#2563eb;stroke-width:5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="88">PCSS · 接触硬、远处软的三步流程</text>
+  <rect class="a" x="120" y="235" width="360" height="230"/>
+  <text class="h" x="165" y="295">1. Blocker Search</text>
+  <text class="t" x="165" y="350">邻域搜索更靠近光源的深度</text>
+  <text class="code" x="165" y="398">zReceiver - bias &gt; zSample</text>
+  <text class="muted" x="165" y="435">输出 avgBlockerDepth</text>
+  <path class="arr" d="M495 350 L620 350"/>
+
+  <rect class="b" x="640" y="235" width="360" height="230"/>
+  <text class="h" x="683" y="295">2. Penumbra Size</text>
+  <text class="t" x="683" y="350">由深度差估算半影比例</text>
+  <text class="code" x="683" y="398">(zR - zB) / max(zB, EPS)</text>
+  <text class="muted" x="683" y="435">clamp 到 0.0008 ~ 0.009</text>
+  <path class="arr" d="M1015 350 L1140 350"/>
+
+  <rect class="c" x="1160" y="235" width="360" height="230"/>
+  <text class="h" x="1205" y="295">3. Variable PCF</text>
+  <text class="t" x="1205" y="350">用动态 filterSize 做 PCF</text>
+  <text class="code" x="1205" y="398">PCFWithFilterSize(...)</text>
+  <text class="muted" x="1205" y="435">输出 visibility</text>
+
+  <rect class="card" x="210" y="585" width="1180" height="170"/>
+  <text class="h" x="260" y="650">和 PCF 的关键区别</text>
+  <text class="t" x="260" y="705">PCF：固定 r，所有位置一样软；PCSS：r 随 receiver-blocker 深度差变化。</text>
+  <text class="t" x="260" y="745">遮挡物贴近接收面 → 半影小；距离变大 → filterSize 变大，边缘更宽。</text>
+</svg>

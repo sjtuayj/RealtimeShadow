@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <style>
+      .bg{fill:#fbfcff}.title{font:700 42px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.h{font:700 27px Arial,"Microsoft YaHei",sans-serif;fill:#172033}
+      .t{font:400 22px Arial,"Microsoft YaHei",sans-serif;fill:#334155}.muted{font:400 19px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+      .card{fill:#fff;stroke:#d8e0eb;stroke-width:3;rx:20}.hard{stroke:#ef4444}.pcf{stroke:#2563eb}.pcss{stroke:#22a35f}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="88">三种阴影方法对比</text>
+  <rect class="card hard" x="100" y="180" width="430" height="580"/>
+  <text class="h" x="150" y="250">Hard Shadow Map</text>
+  <path d="M150 420 C230 420,260 420,310 420 C360 420,390 420,480 420" stroke="#ef4444" stroke-width="8" fill="none"/>
+  <rect x="150" y="420" width="165" height="12" fill="#111827"/>
+  <text class="t" x="150" y="520">一次深度比较</text>
+  <text class="t" x="150" y="565">二值可见性 0 / 1</text>
+  <text class="muted" x="150" y="640">优点：验证遮挡关系直接</text>
+  <text class="muted" x="150" y="685">缺点：边缘硬、锯齿明显</text>
+
+  <rect class="card pcf" x="585" y="180" width="430" height="580"/>
+  <text class="h" x="635" y="250">PCF</text>
+  <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#111827"/><stop offset=".5" stop-color="#94a3b8"/><stop offset="1" stop-color="#e5e7eb"/></linearGradient>
+  <rect x="635" y="390" width="300" height="55" fill="url(#g1)"/>
+  <text class="t" x="635" y="520">固定半径多采样</text>
+  <text class="t" x="635" y="565">平均 shadow test</text>
+  <text class="muted" x="635" y="640">优点：边缘连续平滑</text>
+  <text class="muted" x="635" y="685">缺点：接触处和远处一样软</text>
+
+  <rect class="card pcss" x="1070" y="180" width="430" height="580"/>
+  <text class="h" x="1120" y="250">PCSS</text>
+  <linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#111827"/><stop offset=".25" stop-color="#111827"/><stop offset=".7" stop-color="#94a3b8"/><stop offset="1" stop-color="#e5e7eb"/></linearGradient>
+  <rect x="1120" y="390" width="300" height="55" fill="url(#g2)"/>
+  <text class="t" x="1120" y="520">blocker search + 动态半影</text>
+  <text class="t" x="1120" y="565">动态半径 PCF</text>
+  <text class="muted" x="1120" y="640">优点：接触硬、远处软</text>
+  <text class="muted" x="1120" y="685">缺点：采样开销和参数敏感</text>
+</svg>

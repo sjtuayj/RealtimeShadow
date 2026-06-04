@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:700 42px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.h{font:700 28px Arial,"Microsoft YaHei",sans-serif;fill:#172033}
+      .t{font:400 23px Arial,"Microsoft YaHei",sans-serif;fill:#334155}.code{font:400 21px Consolas,"Microsoft YaHei",monospace;fill:#263244}.muted{font:400 19px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+      .card{fill:#fff;stroke:#d8e0eb;stroke-width:3;rx:20}.orbit{fill:none;stroke:#3b82f6;stroke-width:5;stroke-dasharray:10 10}.modelOrbit{fill:none;stroke:#22a35f;stroke-width:5;stroke-dasharray:10 10}.arr{stroke:#2563eb;stroke-width:5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="88">动态光源与动态模型 · 每帧重算阴影</text>
+  <rect class="card" x="90" y="170" width="760" height="650"/>
+  <text class="h" x="140" y="235">场景运动示意</text>
+  <ellipse class="orbit" cx="470" cy="470" rx="260" ry="190"/>
+  <ellipse class="modelOrbit" cx="560" cy="530" rx="125" ry="85"/>
+  <circle cx="470" cy="470" r="42" fill="#94a3b8"/><text class="muted" x="435" y="545">场景中心</text>
+  <circle cx="725" cy="470" r="32" fill="#60a5fa"/><text class="muted" x="695" y="425">Light 1</text>
+  <rect x="535" y="520" width="70" height="70" rx="12" fill="#86efac" stroke="#16a34a" stroke-width="3"/>
+  <path class="arr" d="M604 520 C640 485, 665 500, 690 530"/>
+  <text class="muted" x="625" y="592">小 Mary 公转 + 自转</text>
+
+  <rect class="card" x="940" y="170" width="500" height="650"/>
+  <text class="h" x="985" y="235">关键更新逻辑</text>
+  <text class="code" x="985" y="300">light1.x = cos(t) × 100</text>
+  <text class="code" x="985" y="340">light1.z = sin(t) × 100</text>
+  <text class="code" x="985" y="430">tx = 40 + sin(t×0.4) × 25</text>
+  <text class="code" x="985" y="470">tz = -40 + cos(t×0.4) × 25</text>
+  <text class="code" x="985" y="510">ry = t × 0.6</text>
+  <text class="t" x="985" y="610">每帧 renderer 重新计算 uLightMVP</text>
+  <text class="muted" x="985" y="655">Shadow Pass 和 Camera Pass 都使用更新后的 transform</text>
+</svg>

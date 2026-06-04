@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#fbfcff}.title{font:700 42px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.box{fill:#fff;stroke:#d7deea;stroke-width:3;rx:18}
+      .step{fill:#eaf2ff;stroke:#2563eb;stroke-width:3;rx:18}.step2{fill:#fff7e6;stroke:#d39500;stroke-width:3;rx:18}.step3{fill:#edf8f1;stroke:#21a05b;stroke-width:3;rx:18}
+      .h{font:700 28px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.t{font:400 23px Arial,"Microsoft YaHei",sans-serif;fill:#334155}.code{font:400 22px Consolas,"Microsoft YaHei",monospace;fill:#263244}
+      .arr{stroke:#2563eb;stroke-width:5;fill:none;marker-end:url(#arrow)}.muted{font:400 20px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="88">Light MVP 与 WebGL1 深度编码</text>
+  <rect class="step" x="120" y="210" width="260" height="120"/><text class="h" x="188" y="260">Model</text><text class="t" x="160" y="300">translate + scale</text>
+  <path class="arr" d="M390 270 L495 270"/>
+  <rect class="step2" x="510" y="210" width="260" height="120"/><text class="h" x="585" y="260">View</text><text class="t" x="550" y="300">lookAt(light)</text>
+  <path class="arr" d="M780 270 L885 270"/>
+  <rect class="step3" x="900" y="210" width="260" height="120"/><text class="h" x="958" y="260">Project</text><text class="t" x="938" y="300">ortho volume</text>
+  <path class="arr" d="M1170 270 L1275 270"/>
+  <rect class="box" x="1290" y="210" width="250" height="120"/><text class="h" x="1345" y="260">Light MVP</text><text class="t" x="1320" y="300">P × V × M</text>
+
+  <rect class="box" x="125" y="430" width="650" height="250"/>
+  <text class="h" x="165" y="485">DirectionalLight.CalcLightMVP()</text>
+  <text class="code" x="165" y="540">mat4.lookAt(view, lightPos, focalPoint, lightUp)</text>
+  <text class="code" x="165" y="580">mat4.ortho(project, -120,120, -70,110, 40,240)</text>
+  <text class="code" x="165" y="620">lightMVP = projection × view × model</text>
+  <text class="muted" x="165" y="655">方向光使用正交投影，覆盖 Mary + 地板并收紧深度范围</text>
+
+  <rect class="box" x="875" y="430" width="500" height="250"/>
+  <text class="h" x="915" y="485">Depth Pack / Unpack</text>
+  <text class="code" x="915" y="540">Shadow Pass: pack(gl_FragCoord.z)</text>
+  <text class="code" x="915" y="580">Camera Pass: unpack(texture2D(...))</text>
+  <text class="muted" x="915" y="625">WebGL1 不直接依赖深度纹理读取</text>
+  <text class="muted" x="915" y="655">RGBA 四通道近似保存 32-bit depth</text>
+
+  <path class="arr" d="M450 700 C590 800, 920 800, 1040 700"/>
+  <text class="t" x="612" y="810">同一个 uLightMVP 同时用于 Shadow Pass 和 Camera Pass</text>
+</svg>
