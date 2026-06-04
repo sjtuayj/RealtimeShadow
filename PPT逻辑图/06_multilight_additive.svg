@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#fbfcff}.title{font:700 42px Arial,"Microsoft YaHei",sans-serif;fill:#172033}.h{font:700 27px Arial,"Microsoft YaHei",sans-serif;fill:#172033}
+      .t{font:400 22px Arial,"Microsoft YaHei",sans-serif;fill:#334155}.code{font:400 21px Consolas,"Microsoft YaHei",monospace;fill:#263244}.muted{font:400 19px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+      .card{fill:#fff;stroke:#d8e0eb;stroke-width:3;rx:20}.warm{fill:#fff4dc;stroke:#f59e0b;stroke-width:3;rx:18}.cool{fill:#eaf2ff;stroke:#3b82f6;stroke-width:3;rx:18}.arr{stroke:#2563eb;stroke-width:5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="88">多光源 · 独立 Shadow Map + 加法叠加</text>
+  <rect class="warm" x="130" y="190" width="570" height="245"/>
+  <text class="h" x="175" y="250">Light 0 固定暖色主光</text>
+  <text class="t" x="175" y="305">位置 (0,80,80)，强度 3000</text>
+  <text class="t" x="175" y="350">Shadow Pass → light0.fbo</text>
+  <text class="code" x="175" y="395">uApplyAmbient = 1.0</text>
+  <path class="arr" d="M710 315 L850 315"/>
+  <rect class="card" x="870" y="228" width="285" height="150"/>
+  <text class="h" x="922" y="285">Frame Buffer</text>
+  <text class="muted" x="914" y="330">ambient + direct₀</text>
+
+  <rect class="cool" x="130" y="525" width="570" height="245"/>
+  <text class="h" x="175" y="585">Light 1 轨道冷色光</text>
+  <text class="t" x="175" y="640">位置随时间绕 XZ 平面运动，强度 2500</text>
+  <text class="t" x="175" y="685">Shadow Pass → light1.fbo</text>
+  <text class="code" x="175" y="730">uApplyAmbient = 0.0, blend(ONE, ONE)</text>
+  <path class="arr" d="M710 650 L850 650"/>
+  <rect class="card" x="870" y="563" width="420" height="150"/>
+  <text class="h" x="922" y="620">Additive Blending</text>
+  <text class="muted" x="914" y="665">已有颜色 + direct₁</text>
+
+  <rect class="card" x="1190" y="300" width="360" height="270"/>
+  <text class="h" x="1235" y="360">最终辐射度</text>
+  <text class="code" x="1235" y="420">ambient × first</text>
+  <text class="code" x="1235" y="465">+ visibility₀ × direct₀</text>
+  <text class="code" x="1235" y="510">+ visibility₁ × direct₁</text>
+</svg>

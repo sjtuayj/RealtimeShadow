@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6fed"/>
+    </marker>
+    <style>
+      .bg{fill:#f7f9fc}.title{font:700 44px Arial,"Microsoft YaHei",sans-serif;fill:#16233a}.sub{font:400 24px Arial,"Microsoft YaHei",sans-serif;fill:#536173}
+      .card{fill:white;stroke:#d9e1ee;stroke-width:3;rx:22}.head{font:700 30px Arial,"Microsoft YaHei",sans-serif;fill:#16233a}
+      .txt{font:400 24px Arial,"Microsoft YaHei",sans-serif;fill:#27364d}.code{font:400 22px Consolas,"Microsoft YaHei",monospace;fill:#334155}
+      .blue{fill:#eaf2ff;stroke:#2f6fed}.amber{fill:#fff3d6;stroke:#e5a000}.green{fill:#e9f8ef;stroke:#26a65b}
+      .arrow{stroke:#2f6fed;stroke-width:5;fill:none;marker-end:url(#arrow)}.small{font:400 20px Arial,"Microsoft YaHei",sans-serif;fill:#64748b}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <text class="title" x="90" y="86">Shadow Map · 两趟算法核心</text>
+  <text class="sub" x="90" y="126">先从光源视角记录最近深度，再从相机视角做深度比较</text>
+
+  <rect class="card" x="95" y="205" width="500" height="360"/>
+  <text class="head" x="135" y="265">Pass 1: Shadow Pass</text>
+  <rect class="amber" x="135" y="310" width="190" height="72" rx="16"/>
+  <text class="txt" x="165" y="356">Light View</text>
+  <path class="arrow" d="M 335 346 L 438 346"/>
+  <rect class="blue" x="455" y="300" width="160" height="92" rx="16"/>
+  <text class="txt" x="492" y="340">FBO</text>
+  <text class="small" x="482" y="370">RGBA depth</text>
+  <path class="arrow" d="M 535 402 L 535 485"/>
+  <rect class="green" x="390" y="500" width="250" height="95" rx="16"/>
+  <text class="txt" x="428" y="543">Shadow Map</text>
+  <text class="small" x="432" y="573">d_map(x,y)</text>
+
+  <rect class="card" x="1005" y="205" width="500" height="360"/>
+  <text class="head" x="1045" y="265">Pass 2: Camera Pass</text>
+  <rect class="blue" x="1045" y="305" width="205" height="88" rx="16"/>
+  <text class="txt" x="1085" y="350">Camera View</text>
+  <path class="arrow" d="M 1262 349 L 1370 349"/>
+  <rect class="green" x="1385" y="305" width="205" height="88" rx="16"/>
+  <text class="txt" x="1415" y="344">Sample SM</text>
+  <text class="small" x="1430" y="373">depth compare</text>
+  <path class="arrow" d="M 1488 405 L 1488 485"/>
+  <rect class="amber" x="1320" y="500" width="250" height="95" rx="16"/>
+  <text class="txt" x="1374" y="544">Visibility</text>
+  <text class="small" x="1360" y="574">0 阴影 / 1 可见</text>
+
+  <path class="arrow" d="M 640 548 C 760 620, 880 620, 1000 548"/>
+  <text class="small" x="713" y="665">Shadow Map 作为 Camera Pass 的输入纹理</text>
+
+  <rect class="card" x="320" y="710" width="960" height="120"/>
+  <text class="code" x="370" y="765">visibility = d_receiver - bias &gt; d_map(x,y) ? 0.0 : 1.0</text>
+  <text class="small" x="370" y="805">代码：shadowFragment.glsl pack(depth)；phongFragment.glsl unpack() + useShadowMap()</text>
+</svg>
