@@ -39,23 +39,6 @@
 └── 说明.pdf                # 作业说明文档
 ```
 
-## 任务进度
-
-### 已实现
-
-| 任务 | 状态 | 关键文件 | 归档文档 |
-|------|------|---------|---------|
-| 基础场景跑通 | ✅ | `engine.js` | — |
-| **任务1：Shadow Map 硬阴影** | ✅ | `DirectionalLight.js`, `phongFragment.glsl`, `WebGLRenderer.js`, `FBO.js` | [任务1_ShadowMap硬阴影.md](任务1_ShadowMap硬阴影.md) |
-| **任务2：PCF 软阴影** | ✅ | `phongFragment.glsl`, `FBO.js` | [任务2_PCF软阴影.md](任务2_PCF软阴影.md) |
-| **任务3：PCSS** | ✅ | `phongFragment.glsl` (`findBlocker`, `PCSS`, `PCFWithFilterSize`) | [任务3_PCSS软阴影.md](任务3_PCSS软阴影.md) |
-| 额外任务：多光源与移动光源 | ✅ | `engine.js`, `WebGLRenderer.js`, `PhongMaterial.js`, `phongFragment.glsl` | [额外任务_多光源与移动光源.md](额外任务_多光源与移动光源.md) |
-| 截图和提交整理 | ✅ | `images/` | [images](./images) |
-
-### 提交前注意事项
-
-- 提交时按作业要求删除 `/lib` 和 `/assets`。
-
 ## 快速开始
 
 ### VS Code
@@ -80,11 +63,14 @@ http-server . -p 8000 -c-1
 
 | 操作 | 功能 |
 |------|------|
-| 鼠标右键拖拽 | 旋转相机 |
+| 鼠标左键拖拽 | 旋转相机 |
 | 滚轮 | 缩放 |
-| 鼠标左键拖拽 | 平移相机 |
+| 鼠标右键拖拽 | 平移相机 |
+| Shadow Mode | 在 `PCF`、`PCSS`、`Hard` 三种阴影模式之间实时切换 |
 | Show Shadow Map | 在右下角显示 Shadow Map 灰度小窗 |
 | Show Blocker Search | 显示 Blocker 搜索红绿色标可视化 |
+| Animate Light | 开启/关闭移动光源动画 |
+| Animate Model | 开启/关闭动态模型自转和平动 |
 
 ## 当前参数
 
@@ -103,12 +89,12 @@ http-server . -p 8000 -c-1
 
 ## 切换阴影模式
 
-在 `src/shaders/phongShader/phongFragment.glsl` 的 `main()` 中切换注释：
+页面右上角提供 dat.gui 控制面板，可通过 `Shadow Mode` 下拉框在三种模式之间实时切换，无需修改 shader 或刷新页面：
 
-```glsl
-// visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));  // 任务1：硬阴影
-visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));              // 任务2：PCF
-// visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));          // 任务3：PCSS
-```
+| 模式 | 说明 |
+|------|------|
+| `PCF` | 固定滤波半径软阴影，边缘平滑，默认模式 |
+| `PCSS` | 基于 blocker search 的动态半影软阴影，接触处较硬、远离遮挡物处较软 |
+| `Hard` | 基础 Shadow Map 硬阴影，用于观察原始遮挡关系 |
 
-每次切换阴影模式后，请在浏览器中使用 `Ctrl + Shift + R` 强制刷新，避免浏览器缓存旧的 GLSL 文件。
+调试时可同时打开 `Show Shadow Map` 查看右下角深度图小窗，或打开 `Show Blocker Search` 查看 blocker 搜索区域的红绿色标。`Animate Light` 和 `Animate Model` 可分别控制移动光源和动态模型动画，便于截图或对比不同阴影模式。
